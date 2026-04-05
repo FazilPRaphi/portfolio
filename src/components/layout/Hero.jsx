@@ -129,6 +129,18 @@ const EXPERTISE = [
     ),
   },
   {
+    name: "Python",
+    category: "Language",
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+        <path d="M23.9 6.2c-5.8 0-6.8.8-6.8 3.5v3.4h7.1v2.4H13c-4.2 0-4.8 2-4.8 6.5s.4 6.5 4.8 6.5h3.4v-4.9c0-3.3 2.8-6.1 6.1-6.1h7.3c2 0 3.6-1.6 3.6-3.6V8.1c0-2-1.5-1.9-3.6-1.9h-5.9z" fill="#1a1c1c" />
+        <path d="M24.1 41.8c5.8 0 6.8-.8 6.8-3.5v-3.4h-7.1v-2.4H35c4.2 0 4.8-2 4.8-6.5s-.4-6.5-4.8-6.5h-3.4v4.9c0 3.3-2.8 6.1-6.1 6.1h-7.3c-2 0-3.6 1.6-3.6 3.6v5.8c0 2 1.5 1.9 3.6 1.9h5.9z" fill="#1a1c1c" />
+        <circle cx="19" cy="11.5" r="1.8" fill="#eeeeee" />
+        <circle cx="29" cy="36.5" r="1.8" fill="#eeeeee" />
+      </svg>
+    ),
+  },
+  {
     name: "HTML",
     category: "Frontend",
     icon: (
