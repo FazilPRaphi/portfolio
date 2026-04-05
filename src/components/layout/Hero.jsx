@@ -289,6 +289,22 @@ const EXPERTISE = [
   },
 ];
 
+const CATEGORY_COLORS = {
+  Frontend: "#5f6300",
+  Backend: "#1a1c1c",
+  Database: "#474a00",
+  "AI/ML": "#5f6300",
+  Framework: "#1a1c1c",
+  Tooling: "#3a3c00",
+  Language: "#1a1c1c",
+};
+
+const HIGHLIGHT_ITEMS = [
+  "Full Stack Mastery",
+  "Pixel Perfection",
+  "Scalable Architecture",
+];
+
 /* ─────────────────────────────────────────────────────────────
    INTERSECTION OBSERVER HOOK
 ───────────────────────────────────────────────────────────── */
@@ -308,6 +324,21 @@ function useInView(options = {}) {
   }, []);
 
   return [ref, inView];
+}
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => setIsMobile(window.innerWidth < breakpoint);
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, [breakpoint]);
+
+  return isMobile;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -361,7 +392,7 @@ function Hero() {
           className="text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter mb-8 uppercase text-[#1a1c1c]"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
-          Hi, I'm{" "}
+          Hi, I&apos;m{" "}
           <span className="text-[#5f6300] underline decoration-8 underline-offset-8">Fazil</span>
         </h1>
         <p
@@ -436,7 +467,7 @@ function Hero() {
 /* ─────────────────────────────────────────────────────────────
    MARQUEE
 ───────────────────────────────────────────────────────────── */
-function Marquee() {
+function HighlightCarousel() {
   const words = ["Full Stack Mastery", "•", "Pixel Perfection", "•", "Scalable Architecture", "•"];
   return (
     <section className="my-40 border-y-8 border-[#1a1c1c] py-8 bg-[#f4fd2f] overflow-hidden whitespace-nowrap">
@@ -461,16 +492,6 @@ function Marquee() {
 function ExpertiseCard({ tech, index, inView }) {
   const [hovered, setHovered] = useState(false);
 
-  const categoryColors = {
-    "Frontend": "#5f6300",
-    "Backend": "#1a1c1c",
-    "Database": "#474a00",
-    "AI/ML": "#5f6300",
-    "Framework": "#1a1c1c",
-    "Tooling": "#3a3c00",
-    "Language": "#1a1c1c",
-  };
-
   return (
     <div
       className="relative border-4 border-[#1a1c1c] p-6 cursor-pointer transition-all duration-200 bg-[#f9f9f9]"
@@ -494,7 +515,7 @@ function ExpertiseCard({ tech, index, inView }) {
         className="inline-block px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#f9f9f9] mb-4"
         style={{
           fontFamily: "'Space Grotesk', sans-serif",
-          backgroundColor: categoryColors[tech.category] ?? "#1a1c1c",
+          backgroundColor: CATEGORY_COLORS[tech.category] ?? "#1a1c1c",
         }}
       >
         {tech.category}
@@ -529,6 +550,47 @@ function ExpertiseCard({ tech, index, inView }) {
         style={{ width: hovered ? "100%" : "0%" }}
       />
     </div>
+  );
+}
+
+function ExpertiseListItem({ tech, index, inView }) {
+  return (
+    <article
+      className="relative w-full overflow-hidden border-4 border-[#1a1c1c] bg-[#f9f9f9] p-5 sm:p-6"
+      style={{
+        opacity: inView ? 1 : 0,
+        transform: inView ? "translateY(0)" : "translateY(24px)",
+        transition: `opacity 0.45s ${index * 0.06}s cubic-bezier(.22,1,.36,1), transform 0.45s ${index * 0.06}s cubic-bezier(.22,1,.36,1)`,
+        boxShadow: "8px 8px 0 0 rgba(26,28,28,1)",
+      }}
+    >
+      <div className="flex items-start gap-4">
+        <div className="w-14 h-14 shrink-0 border-4 border-[#1a1c1c] bg-[#eeeeee] flex items-center justify-center">
+          <div>{tech.icon}</div>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div
+            className="inline-block px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#f9f9f9] mb-3"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              backgroundColor: CATEGORY_COLORS[tech.category] ?? "#1a1c1c",
+            }}
+          >
+            {tech.category}
+          </div>
+
+          <h3
+            className="text-lg font-black uppercase tracking-tighter text-[#1a1c1c] break-words"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            {tech.name}
+          </h3>
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 h-1 w-full bg-[#5f6300]" />
+    </article>
   );
 }
 
@@ -614,13 +676,18 @@ function Expertise() {
         </div>
 
         {/* Grid */}
-        <div
-          ref={gridRef}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {EXPERTISE.map((tech, i) => (
-            <ExpertiseCard key={tech.name} tech={tech} index={i} inView={gridInView} />
-          ))}
+        <div ref={gridRef}>
+          <div className="space-y-5 md:hidden">
+            {EXPERTISE.map((tech, i) => (
+              <ExpertiseListItem key={tech.name} tech={tech} index={i} inView={gridInView} />
+            ))}
+          </div>
+
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {EXPERTISE.map((tech, i) => (
+              <ExpertiseCard key={tech.name} tech={tech} index={i} inView={gridInView} />
+            ))}
+          </div>
         </div>
 
         {/* Bottom counter bar */}
@@ -690,4 +757,30 @@ export default function HomeHero() {
       <Expertise />
     </>
   );
+}
+
+function HighlightCards() {
+  return (
+    <section className="my-16">
+      <div className="flex flex-col gap-4">
+        {HIGHLIGHT_ITEMS.map((item) => (
+          <button
+            key={item}
+            type="button"
+            aria-label={item}
+            className="w-full cursor-pointer rounded-xl border-4 border-[#1a1c1c] bg-[#f4fd2f] px-5 py-4 text-left text-xl font-black uppercase tracking-tighter text-[#1a1c1c] shadow-md transition-all duration-150 active:scale-95 active:bg-[#e3ec15] active:shadow-none"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Marquee() {
+  const isMobile = useIsMobile();
+
+  return isMobile ? <HighlightCards /> : <HighlightCarousel />;
 }
