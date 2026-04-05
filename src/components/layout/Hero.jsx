@@ -343,7 +343,7 @@ function Hero() {
         >
           <div className="w-full h-[300px] md:h-[500px] bg-[#e2e2e2] flex items-center justify-center grayscale contrast-125">
             <img
-              src="/imu3.jpg"
+              src="/imu2.jpg"
               alt="Fazil - Full Stack Developer"
               className="w-full h-full object-cover grayscale contrast-125"
               onError={e => {
