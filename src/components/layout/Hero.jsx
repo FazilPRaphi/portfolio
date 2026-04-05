@@ -141,6 +141,58 @@ const EXPERTISE = [
     ),
   },
   {
+    name: "React Native",
+    category: "Framework",
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+        <ellipse cx="24" cy="24" rx="4" ry="4" fill="#1a1c1c" />
+        <ellipse cx="24" cy="24" rx="20" ry="7.5" stroke="#1a1c1c" strokeWidth="2.5" fill="none" />
+        <ellipse cx="24" cy="24" rx="20" ry="7.5" stroke="#1a1c1c" strokeWidth="2.5" fill="none" transform="rotate(60 24 24)" />
+        <ellipse cx="24" cy="24" rx="20" ry="7.5" stroke="#1a1c1c" strokeWidth="2.5" fill="none" transform="rotate(120 24 24)" />
+      </svg>
+    ),
+  },
+  {
+    name: "Supabase",
+    category: "Database",
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+        <circle cx="24" cy="24" r="16" stroke="#1a1c1c" strokeWidth="2.5" />
+        <circle cx="24" cy="24" r="6" fill="#1a1c1c" />
+      </svg>
+    ),
+  },
+  {
+    name: "Firebase",
+    category: "Database",
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+        <path d="M10 38L24 8L38 38Z" stroke="#1a1c1c" strokeWidth="2.5" strokeLinejoin="miter" fill="none" />
+        <path d="M10 38L24 24L38 38Z" fill="#1a1c1c" />
+      </svg>
+    ),
+  },
+  {
+    name: "Flutter",
+    category: "Framework",
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+        <polygon points="15,22 26,11 38,11 20,29" fill="#1a1c1c" />
+        <polygon points="20,33 25,28 38,41 27,41" fill="#1a1c1c" />
+      </svg>
+    ),
+  },
+  {
+    name: "Dart",
+    category: "Language",
+    icon: (
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+        <polygon points="12,24 24,12 38,12 24,26" fill="#1a1c1c" />
+        <polygon points="16,30 24,22 30,38 22,38" fill="#1a1c1c" />
+      </svg>
+    ),
+  },
+  {
     name: "HTML",
     category: "Frontend",
     icon: (
@@ -580,10 +632,9 @@ function Expertise() {
           }}
         >
           {[
-            { label: "Frontend", count: EXPERTISE.filter(e => e.category === "Frontend").length },
-            { label: "Backend", count: EXPERTISE.filter(e => e.category === "Backend").length },
-            { label: "Database", count: EXPERTISE.filter(e => e.category === "Database").length },
-            { label: "AI / ML", count: EXPERTISE.filter(e => e.category === "AI/ML").length },
+            { label: "Front / Mobile", count: EXPERTISE.filter(e => ["Frontend", "Framework"].includes(e.category)).length },
+            { label: "Back / Data", count: EXPERTISE.filter(e => ["Backend", "Database", "Language"].includes(e.category)).length },
+            { label: "AI / Tools", count: EXPERTISE.filter(e => ["AI/ML", "Tooling"].includes(e.category)).length },
           ].map((stat, i) => (
             <div
               key={stat.label}
