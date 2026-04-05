@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+
+const API_URL = "http://127.0.0.1:5000";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,18 +18,31 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (error) {
-      setError(error.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Save JWT
+      localStorage.setItem("token", data.token);
+
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Server not reachable");
       setLoading(false);
-      return;
     }
-
-    router.push("/dashboard");
   }
 
   return (

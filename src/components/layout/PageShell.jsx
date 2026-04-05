@@ -5,6 +5,9 @@ import clsx from "clsx";
 /**
  * Shared responsive page wrapper for public pages.
  * Intentionally NOT used by /login and /dashboard to avoid changing their UI.
+ *
+ * BRUTALIST "RAW CURATOR" design system:
+ *   surface: #f9f9f9  |  on-surface: #1a1c1c  |  0px border-radius
  */
 export default function PageShell({
   children,
@@ -14,24 +17,16 @@ export default function PageShell({
 }) {
   return (
     <div
-      className={clsx(
-        "min-h-screen",
-        // New, more vibrant scheme
-        "bg-[radial-gradient(1200px_circle_at_20%_0%,rgba(56,189,248,0.14),transparent_40%),radial-gradient(900px_circle_at_80%_10%,rgba(217,70,239,0.14),transparent_45%),radial-gradient(800px_circle_at_50%_90%,rgba(99,102,241,0.12),transparent_50%),linear-gradient(180deg,#070A12_0%,#050813_100%)]",
-        className,
-      )}
+      className={clsx("min-h-screen overflow-x-clip", className)}
+      style={{ backgroundColor: "#f9f9f9" }}
     >
-      {/* subtle grain for depth */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:24px_24px]" />
       <main
         className={clsx(
-          "relative mx-auto max-w-6xl px-4 sm:px-6",
-          // Offset the fixed navbar; keep consistent across pages
-          "pt-24 md:pt-28",
-          // Comfortable vertical rhythm on mobile/desktop
-          "py-10 md:py-16",
-          withFooterGap && "pb-16 md:pb-20",
-          contentClassName,
+          "relative mx-auto w-full max-w-7xl min-w-0 px-4 sm:px-6 lg:px-8",
+          "pt-28 sm:pt-32 md:pt-36",
+          "pb-10 sm:pb-12 md:pb-16",
+          withFooterGap && "pb-16 sm:pb-[4.5rem] md:pb-20",
+          contentClassName
         )}
       >
         {children}
@@ -39,4 +34,3 @@ export default function PageShell({
     </div>
   );
 }
-
