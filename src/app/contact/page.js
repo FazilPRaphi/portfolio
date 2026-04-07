@@ -56,7 +56,7 @@ const CONTACT_ROWS = [
   {
     icon: GraduationCap,
     label: "Institution",
-    value: "College Of Engineering Kalloopara",
+    value: "College Of Engineering Kallooppara",
     href: "https://www.cek.ac.in/",
     external: true,
   },
