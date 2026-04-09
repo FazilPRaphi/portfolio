@@ -63,6 +63,23 @@ export async function POST(req) {
   }
 }
 
+// READ projects
+export async function GET() {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data: projects, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json(projects);
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
 // UPDATE project
 export async function PATCH(req) {
   try {

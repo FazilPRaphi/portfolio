@@ -2,23 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 import Spinner from "@/components/ui/spinner";
-
-const API_URL = "";
-
-function getAuthHeaders() {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  return {
-    Authorization: `Bearer ${token}`,
-  };
-}
 
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   const [projects, setProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
@@ -50,42 +41,49 @@ export default function DashboardPage() {
   const [message, setMessage] = useState("");
   const [certMessage, setCertMessage] = useState("");
 
-  // Hydration fix
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    const checkAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-  // JWT auth check
-  useEffect(() => {
-    if (!mounted) return;
+      if (!session) {
+        router.replace("/login");
+      } else {
+        setUser(session.user);
+        setLoading(false);
+      }
+    };
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.replace("/login");
-    } else {
-      setLoading(false);
-    }
-  }, [mounted, router]);
+    checkAuth();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!session) {
+          router.replace("/login");
+        } else {
+          setUser(session.user);
+          setLoading(false);
+        }
+      },
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, [router]);
 
   async function handleLogout() {
-    localStorage.removeItem("token");
+    await supabase.auth.signOut();
     router.replace("/login");
   }
 
   const loadProjects = async () => {
     setProjectsLoading(true);
 
-    const res = await fetch(`${API_URL}/api/projects`, {
-      headers: getAuthHeaders(),
-    });
+    const { data } = await supabase
+      .from("projects")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    if (res.status === 401) {
-      localStorage.removeItem("token");
-      router.replace("/login");
-      return;
-    }
-
-    const data = await res.json();
     setProjects(data || []);
     setProjectsLoading(false);
   };
@@ -93,26 +91,19 @@ export default function DashboardPage() {
   const loadCertificates = async () => {
     setCertificatesLoading(true);
 
-    const res = await fetch(`${API_URL}/api/certificates`, {
-      headers: getAuthHeaders(),
-    });
+    const { data } = await supabase
+      .from("certificates")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    if (res.status === 401) {
-      localStorage.removeItem("token");
-      router.replace("/login");
-      return;
-    }
-
-    const data = await res.json();
     setCertificates(data || []);
     setCertificatesLoading(false);
   };
 
   useEffect(() => {
-    if (!mounted) return;
     loadProjects();
     loadCertificates();
-  }, [mounted]);
+  }, []);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -125,12 +116,9 @@ export default function DashboardPage() {
 
     try {
       if (editingId) {
-        const res = await fetch(`${API_URL}/api/projects`, {
+        const res = await fetch("/api/projects", {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeaders(),
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: editingId,
             title: form.title,
@@ -141,6 +129,7 @@ export default function DashboardPage() {
         });
 
         const result = await res.json();
+
         if (!res.ok) {
           setMessage(result.error || "Update failed");
           return;
@@ -158,13 +147,13 @@ export default function DashboardPage() {
           formData.append("image", form.image);
         }
 
-        const res = await fetch(`${API_URL}/api/projects`, {
+        const res = await fetch("/api/projects", {
           method: "POST",
-          headers: getAuthHeaders(),
           body: formData,
         });
 
         const result = await res.json();
+
         if (!res.ok) {
           setMessage(result.error || "Failed");
           return;
@@ -189,7 +178,7 @@ export default function DashboardPage() {
   }
 
   function handleEdit(project) {
-    setEditingId(project.id || project._id);
+    setEditingId(project.id);
     setForm({
       title: project.title || "",
       description: project.description || "",
@@ -204,16 +193,19 @@ export default function DashboardPage() {
   async function handleDelete(id) {
     if (!confirm("Delete this project?")) return;
 
-    await fetch(`${API_URL}/api/projects`, {
+    const res = await fetch("/api/projects", {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
 
-    loadProjects();
+    const result = await res.json();
+
+    if (!res.ok) {
+      alert(result.error || "Delete failed");
+    } else {
+      loadProjects();
+    }
   }
 
   async function handleCertificateSubmit(e) {
@@ -222,12 +214,9 @@ export default function DashboardPage() {
 
     try {
       if (editingCertId) {
-        await fetch(`${API_URL}/api/certificates`, {
+        const res = await fetch("/api/certificates", {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeaders(),
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: editingCertId,
             title: certForm.title,
@@ -235,6 +224,13 @@ export default function DashboardPage() {
             issued_date: certForm.issued_date,
           }),
         });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          setCertMessage(result.error || "Update failed");
+          return;
+        }
 
         setCertMessage("Certificate updated ✅");
       } else {
@@ -247,11 +243,17 @@ export default function DashboardPage() {
           formData.append("image", certForm.image);
         }
 
-        await fetch(`${API_URL}/api/certificates`, {
+        const res = await fetch("/api/certificates", {
           method: "POST",
-          headers: getAuthHeaders(),
           body: formData,
         });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          setCertMessage(result.error || "Failed");
+          return;
+        }
 
         setCertMessage("Certificate added ✅");
       }
@@ -271,7 +273,7 @@ export default function DashboardPage() {
   }
 
   function handleEditCertificate(cert) {
-    setEditingCertId(cert.id || cert._id);
+    setEditingCertId(cert.id);
     setCertForm({
       title: cert.title || "",
       issuer: cert.issuer || "",
@@ -285,19 +287,22 @@ export default function DashboardPage() {
   async function handleDeleteCertificate(id) {
     if (!confirm("Delete this certificate?")) return;
 
-    await fetch(`${API_URL}/api/certificates`, {
+    const res = await fetch("/api/certificates", {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
 
-    loadCertificates();
+    const result = await res.json();
+
+    if (!res.ok) {
+      alert(result.error || "Delete failed");
+    } else {
+      loadCertificates();
+    }
   }
 
-  if (!mounted || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner />
@@ -389,7 +394,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {projects.map((p) => (
-            <div key={p.id || p._id} className="border p-4 rounded-xl space-y-3">
+            <div key={p.id} className="border p-4 rounded-xl space-y-3">
               {p.image && (
                 <img
                   src={p.image}
@@ -406,7 +411,7 @@ export default function DashboardPage() {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(p.id || p._id)}
+                  onClick={() => handleDelete(p.id)}
                   className="bg-red-500 text-white px-3 py-1 rounded text-sm"
                 >
                   Delete
@@ -417,7 +422,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* CERTIFICATE FORM */}
+      {/* CERTIFICATE FORM (THIS WAS MISSING) */}
       <div className="border p-6 rounded-xl">
         <h2 className="text-xl font-semibold mb-4">
           {editingCertId ? "Edit Certificate" : "Add Certificate"}
@@ -485,7 +490,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {certificates.map((c) => (
-            <div key={c.id || c._id} className="border p-4 rounded-xl space-y-2">
+            <div key={c.id} className="border p-4 rounded-xl space-y-2">
               {c.image && (
                 <img
                   src={c.image}
@@ -503,7 +508,7 @@ export default function DashboardPage() {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDeleteCertificate(c.id || c._id)}
+                  onClick={() => handleDeleteCertificate(c.id)}
                   className="bg-red-500 text-white px-3 py-1 rounded text-sm"
                 >
                   Delete

@@ -62,6 +62,23 @@ export async function POST(req) {
   }
 }
 
+// READ certificates
+export async function GET() {
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data: certificates, error } = await supabase.from("certificates").select("*").order("created_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json(certificates);
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
 // UPDATE certificate
 export async function PATCH(req) {
   try {
